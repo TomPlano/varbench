@@ -8,6 +8,7 @@ DRIVER_DIR  = $(SRC_DIR)/driver
 INCLUDE_DIR = $(MAKE_DIR)/include
 LIB_DIR     = $(MAKE_DIR)/lib
 CORPUS_DIR  = $(KERNELS_DIR)/corpuses/sample-corpus
+SOCK_DIR	= $(KERNELS_DIR)/corpuses/socket-corpus
 
 KERNELS = $(LIB_DIR)/libvarbench-kernels.a
 MODULES = $(LIB_DIR)/libvarbench-modules.a
@@ -19,7 +20,7 @@ HEADERS = $(INCLUDE_DIR)/varbench.h
 CC = mpicc
 AR = ar
 
-CFLAGS := -D_GNU_SOURCE -pthread -fPIC -I$(INCLUDE_DIR) -I$(UTILS_DIR) -I$(CORPUS_DIR) $(EXTERN_LIBS)
+CFLAGS := -O0 -D_GNU_SOURCE -pthread -fPIC -I$(INCLUDE_DIR) -I$(UTILS_DIR) -I$(CORPUS_DIR) -I$(SOCK_DIR) $(EXTERN_LIBS)
 LDFLAGS :=
 EXTERN_LIBS := -lhwloc -lm -lnuma -pthread -ldl
 
@@ -32,7 +33,6 @@ all: driver libvarbench
 #EXTERN_LIBS += -lpapi
 #CFLAGS += -DUSE_PAPI
 #### END USER OPTIONS
-
 
 
 # Invoke 'make OPERATING_SYSTEM=<corpus directory>' to built an operating_system kernel with a 

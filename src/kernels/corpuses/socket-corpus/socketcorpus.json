@@ -1,0 +1,18 @@
+{
+	"socket_config":{
+		"connection_domain":2,
+		"connection_type":1,
+		"connection_proto":0,
+		"connection_port":8080
+	},
+	"syscall_list":[
+		"open_sock",
+		"connect_sock",
+		"sendto_sock",
+		"sendto_sock",
+		"sendto_sock",
+		"sendto_sock",
+		"sendto_sock",
+		"sendto_sock",
+		"close_sock"]
+}

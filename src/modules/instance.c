@@ -43,6 +43,7 @@ vb_str_to_kernel(vb_instance_t * instance)
     CHECK_KERNEL_STR(instance, random_neighbor);
     CHECK_KERNEL_STR(instance, nearest_neighbor);
     CHECK_KERNEL_STR(instance, io);
+    CHECK_KERNEL_STR(instance, socket);
     CHECK_KERNEL_STR(instance, dgemm);
     CHECK_KERNEL_STR(instance, operating_system);
 

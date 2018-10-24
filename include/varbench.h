@@ -177,7 +177,7 @@ extern vb_instance_t this_instance;
 #define vb_error(format, args...)       __vb_error(VB_PRINT_ANY, format, ##args)
 
 /* Kernels */
-
+    
 int vb_kernel_hello_world(int, char **, vb_instance_t *);
 
 /* Cache kernels */
@@ -195,6 +195,8 @@ int vb_kernel_alltoall(int, char **, vb_instance_t *);
 int vb_kernel_random_neighbor(int, char **, vb_instance_t *);
 int vb_kernel_nearest_neighbor(int, char **, vb_instance_t *);
 int vb_kernel_io(int, char **, vb_instance_t *);
+int vb_kernel_socket(int, char **, vb_instance_t *);
+
 
 /* Application kernels */
 int vb_kernel_dgemm(int, char **, vb_instance_t *);

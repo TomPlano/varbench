@@ -160,6 +160,7 @@ vb_parse_options(int             mpi_rank,
                     "  stream\n" \
                     "  random_access\n" \
                     " Network/IO kernels:\n" \
+                    "  socket\n" \
                     "  alltoall\n" \
                     "  random_neighbor\n" \
                     "  nearest_neighbor\n" \

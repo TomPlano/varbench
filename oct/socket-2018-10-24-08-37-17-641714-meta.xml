@@ -1,0 +1,35 @@
+<!-- Varbench 1.0 metadata file -->
+<vb_metadata>
+	<general>
+		<data_file val="socket-2018-10-24-08-37-17-641714-data.csv"/>
+		<num_instances val="4"/>
+		<num_nodes val="1"/>
+		<num_local_instances val="4"/>
+	</general>
+
+	<options>
+		<option id="debugging" val="off"/>
+		<option id="iterations" val="2"/>
+		<option id="memory_affinity" val="local"/>
+		<option id="processor_pinning" val="core:socket:hw_thread"/>
+		<option id="turbo_pin" val="0"/>
+	</options>
+
+	<kernel name="socket" argc="1">
+		<arg val="../src/kernels/corpuses/socket-corpus/socketcorpus.json"/>
+	</kernel>
+
+	<nodes>
+		<node id="0" hostname="strahl.seas.wustl.edu"/>
+	</nodes>
+
+	<processors num_sockets="1" cores_per_socket="4" hw_threads_per_core="2">
+		<processor local_rank="0" socket="0" core="0" hw_thread="0" os_core="0"/>
+		<processor local_rank="1" socket="0" core="1" hw_thread="0" os_core="1"/>
+		<processor local_rank="2" socket="0" core="2" hw_thread="0" os_core="2"/>
+		<processor local_rank="3" socket="0" core="3" hw_thread="0" os_core="3"/>
+	</processors>
+
+	<miscellaneous>
+	</miscellaneous>
+</vb_metadata>
