@@ -34,7 +34,7 @@ socket_lib_fun init_socketcall_info_t;
 socket_lib_fun deinit_socketcall_info_t;
 
 static int
-write_syscall_times(int rank, time_data_t * call_seq,  int call_seq_len)
+write_syscall_times(int rank, time_data_t * call_seq,  int call_seq_len,  int global_fail_count, int num_ranks)
 {
     int status;
     int i;
@@ -47,7 +47,7 @@ write_syscall_times(int rank, time_data_t * call_seq,  int call_seq_len)
     }
 
     for (i=0;i<call_seq_len;i++){
-        fprintf(outfile,"%i, %i, %lu, %lu, %lu\n", rank, call_seq[i].syscall_num,call_seq[i].time_in, call_seq[i].time_out,  call_seq[i].time_out-call_seq[i].time_in);
+        fprintf(outfile,"%i, %i, %i, %i, %lu, %lu, %lu\n", rank, global_fail_count, num_ranks , call_seq[i].syscall_num,call_seq[i].time_in, call_seq[i].time_out,  call_seq[i].time_out-call_seq[i].time_in);
     }
     
     fclose(outfile);
@@ -61,9 +61,12 @@ iteration(vb_instance_t    * instance,
             vb_socketcall_info_t* info)
 {
 	//work
-    int status, i;
+    int status, i, fail_counter;
     socket_lib_fun fn;
     
+    //init fail_counter
+    fail_counter=0;
+
     //launch untimed portion of code 
     fn = (socket_lib_fun)dlsym(lib_handle,"begin_untimed_program");
     info->timer_choice = TIME_CLIENT;
@@ -71,18 +74,19 @@ iteration(vb_instance_t    * instance,
     vb_print_root("staring untimed task: %i\n", status);
 
     for (i = 0; i < info->program_info->list_length; i++) {
-    fn = (socket_lib_fun)dlsym(lib_handle,info->program_info->program_list[i]);
-    status  = fn(info);
-    if (info->connection_failed)
-    {
-        vb_print_root("Connection failed, aborting itteration\n");
-        break;
+      fn = (socket_lib_fun)dlsym(lib_handle,info->program_info->program_list[i]);
+      status  = fn(info);
+      if (info->connection_failed)
+      {
+          vb_print_root("Connection failed, aborting itteration\n");
+          fail_counter+=1;
+          break;
 
-    }
+      }
     vb_print_root("status of %s: %i\n",info->program_info->program_list[i], status);
     }
 
-	return 0;
+	return fail_counter;
 }
 
 static int
@@ -193,7 +197,7 @@ run_kernel(vb_instance_t    * instance,
            unsigned long long iterations,
            char* json_file)
 {
-	int iter, dummy,fd, status;
+	int iter, local_fail_count, global_fail_count,fd, status;
 	struct timeval t1, t2;
     void* lib_handle;
     cJSON *json_obj, *socket_config, *syscall_list;
@@ -247,14 +251,23 @@ run_kernel(vb_instance_t    * instance,
         init_socketcall_info_t(&info);
 		MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&t1, NULL);
-		dummy = iteration(instance,lib_handle, &info);
+		local_fail_count = iteration(instance,lib_handle, &info);
         gettimeofday(&t2, NULL);
         MPI_Barrier(MPI_COMM_WORLD);
 
+
+        int num_ranks;
+        float miss;
+
+        MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+        MPI_Allreduce(&local_fail_count,&global_fail_count,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+
+        miss = (float)global_fail_count / num_ranks;
+
         //write out each syscalls time to csv
-        if(!info.connection_failed)
+        if(!info.connection_failed && miss<0.5)// scrap itteration if less then 50% successfully connected 
         {
-            status = write_syscall_times(instance->rank_info.local_id, info.call_seq,  info.call_seq_len);
+            status = write_syscall_times(instance->rank_info.local_id, info.call_seq,  info.call_seq_len, global_fail_count, num_ranks);
             if(status!=0)
             {
                 vb_error("syscall csv write failed\n");
@@ -275,7 +288,7 @@ run_kernel(vb_instance_t    * instance,
 		/* Prevent compiler optimization by writing the dummy val somewhere */
         fd = open("/dev/null", O_RDWR);
         assert(fd > 0);
-        write(fd, &dummy, sizeof(int));
+        write(fd, &local_fail_count, sizeof(int));
         close(fd);
 
         if (status != VB_SUCCESS) {
